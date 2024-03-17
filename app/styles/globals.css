@@ -35,6 +35,9 @@ body {
 
 .title {
 	margin: 5px;
+	margin-left: 10px;
+	margin-right: 10px;
+	margin-top: 10px;
 }
 
 .bwt {
@@ -42,17 +45,26 @@ body {
 	margin-right: 5px;
 }
 
+.bwt:last-child {
+	margin-right: 0;
+}
+
 .bwt svg {
 	width: 1rem;
+}
+
+img {
+	margin-top: 10px;
+	margin-bottom: 10px;
 }
 
 .footer {
 	display: flex;
 	justify-content: space-between;
 	font-size: 0.85rem;
-	margin-left: 5px;
-	margin-top: 5px;
-	margin-bottom: 5px;
+	margin-left: 10px;
+	margin-right: 10px;
+	margin-bottom: 7px;
 }
 
 a {
