@@ -139,14 +139,14 @@ export default ({ posts }: { posts: Post[] }) => (
 			<div className="post" key={idx}>
 				<a href={post.link}>
 					<h3 className="title">{post.title}</h3>
-					{post.mediaType !== null && (
-						post.mediaType === MediaType.Image ? (
-							<img src={post.mediaUri} />
-						) : (
-							<video src={post.mediaUri} />
-						)
-					)}
 				</a>
+				{post.mediaType !== null && (
+					post.mediaType === MediaType.Image ? (
+						<img src={post.mediaUri} />
+					) : (
+						<video src={post.mediaUri} />
+					)
+				)}
 				<div className="footer">
 					<div className="meta">
 						<div>
