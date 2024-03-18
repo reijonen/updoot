@@ -80,6 +80,20 @@ const parseToNumber = (input: string): number | null => {
 	return isNaN(parsed) ? null : parsed;
 };
 
+const parseIntoPost = async (res: ScrapedPost[], subreddit?: string) => {
+	return await Promise.all(res.map(async (post: ScrapedPost) => ({
+		media: await scrapeMedia(post.mediaUri, post.comments),
+		title: post.title,
+		link: post.link.startsWith("https://i.redd.it/") || post.link.startsWith("https://v.redd.it/") ? post.comments : post.link,
+		author: post.author,
+		timestamp: post.timestamp,
+		subreddit: subreddit || post.subreddit.substring(2),
+		votes: parseToNumber(post.votes),
+		commentCount: parseToNumber(post.commentCount),
+		comments: post.comments,
+	})));
+};
+
 const getFrontpage = async (geoFilter = "GLOBAL") => {
 	// TODO: geofilters
 	const res = await x(`https://old.reddit.com/r/popular/?geo_filter=${geoFilter}`, ".thing", [
@@ -96,19 +110,30 @@ const getFrontpage = async (geoFilter = "GLOBAL") => {
 		}
 	]);
 
-	return await Promise.all(res.map(async (post: ScrapedPost) => ({
-		media: await scrapeMedia(post.mediaUri, post.comments),
-		title: post.title,
-		link: post.link.startsWith("https://i.redd.it/") || post.link.startsWith("https://v.redd.it/") ? post.comments : post.link,
-		author: post.author,
-		timestamp: post.timestamp,
-		subreddit: post.subreddit.substring(2),
-		votes: parseToNumber(post.votes),
-		commentCount: parseToNumber(post.commentCount),
-		comments: post.comments,
-	})));
+	return parseIntoPost(res);
+};
+
+const getSubreddit = async (subreddit: string) => {
+	const res = await x(`https://old.reddit.com/r/${subreddit}`, ".thing", [
+		{
+			mediaUri: ".thumbnail@href",
+			title: ".top-matter a.title",
+			link: ".top-matter a.title@href",
+			author: ".tagline .author",
+			timestamp: ".tagline .live-timestamp",
+			votes: ".score.unvoted",
+			commentCount: ".bylink.comments",
+			comments: ".bylink.comments@href",
+		}
+	]);
+
+	const posts = await parseIntoPost(res, subreddit);
+	console.log("posts:", posts);
+
+	return posts;
 };
 
 export default {
-	getFrontpage
+	getFrontpage,
+	getSubreddit
 };
