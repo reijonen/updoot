@@ -15,8 +15,31 @@ export type Post = {
 };
 
 type PostProps = {
-	post: Post;
+	post: Post,
 };
+
+type MetaProps = {
+	author: string,
+	subreddit: string,
+};
+
+const Meta = ({ author, subreddit }: MetaProps) => (
+	<div className="meta">
+		<div>
+			<span>By </span>
+			<a href={`https://old.reddit.com/u/${author}`}>
+				{author}
+			</a>
+		</div>
+		<span> </span>
+		<div>
+			<span>in </span>
+			<a href={`https://old.reddit.com/u/${subreddit}`}>
+				{subreddit}
+			</a>
+		</div>
+	</div>
+);
 
 const Post = ({ post }: PostProps) => {
 	return (
@@ -24,27 +47,9 @@ const Post = ({ post }: PostProps) => {
 			<a href={post.link}>
 				<h3 className="title">{post.title}</h3>
 			</a>
-			{post.media &&
-				// <a href={post.link}>
-				<Media media={post.media} />
-				// </a>
-			}
+			{post.media && <Media media={post.media} />}
 			<div className="footer">
-				<div className="meta">
-					<div>
-						<span>By </span>
-						<a href={`https://old.reddit.com/u/${post.author}`}>
-							{post.author}
-						</a>
-					</div>
-					<span> </span>
-					<div>
-						<span>in </span>
-						<a href={`https://old.reddit.com/u/${post.subreddit}`}>
-							{post.subreddit}
-						</a>
-					</div>
-				</div>
+				<Meta author={post.author} subreddit={post.subreddit} />
 				<Stats
 					votes={post.votes}
 					comments={post.comments}
