@@ -1,0 +1,11 @@
+version: "3"
+
+services:
+  app:
+    image: old_reddit_mobile:2024-03-17
+    build:
+      context: .
+    volumes:
+      - ./app:/app
+    ports:
+      - 3000:3000
