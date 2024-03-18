@@ -13,7 +13,8 @@ type ScrapedPost = {
 	timestamp: string,
 	subreddit: string,
 	votes: string,
-	comments: string,
+	commentCount: string,
+	comments: string;
 };
 
 const x = Xray();
@@ -85,24 +86,26 @@ const getFrontpage = async (geoFilter = "GLOBAL") => {
 		{
 			mediaUri: ".thumbnail@href",
 			title: ".top-matter a.title",
-			link: ".bylink.comments@href",
+			link: ".top-matter a.title@href",
 			author: ".tagline .author",
 			timestamp: ".tagline .live-timestamp",
 			subreddit: ".tagline .subreddit",
 			votes: ".score.unvoted",
-			comments: ".bylink.comments",
+			commentCount: ".bylink.comments",
+			comments: ".bylink.comments@href",
 		}
 	]);
 
 	return await Promise.all(res.map(async (post: ScrapedPost) => ({
-		media: await scrapeMedia(post.mediaUri, post.link),
+		media: await scrapeMedia(post.mediaUri, post.comments),
 		title: post.title,
-		link: post.link,
+		link: post.link.startsWith("https://i.redd.it/") || post.link.startsWith("https://v.redd.it/") ? post.comments : post.link,
 		author: post.author,
 		timestamp: post.timestamp,
 		subreddit: post.subreddit.substring(2),
 		votes: parseToNumber(post.votes),
-		comments: parseToNumber(post.comments)
+		commentCount: parseToNumber(post.commentCount),
+		comments: post.comments,
 	})));
 };
 

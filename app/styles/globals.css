@@ -38,10 +38,17 @@ body {
 }
 
 .title {
-	margin: 5px;
-	margin-left: 10px;
-	margin-right: 10px;
-	margin-top: 10px;
+	display: block;
+	margin: 10px 10px 5px 10px;
+}
+
+.title>span {
+	font-size: 0.7rem;
+	color: darkgray;
+}
+
+.title>a {
+	margin-right: 0.2rem;
 }
 
 .bwt {
@@ -69,6 +76,17 @@ body {
 	margin-left: 10px;
 	margin-right: 10px;
 	margin-bottom: 5px;
+}
+
+.footer>a {
+	max-width: 100%;
+	flex-shrink: 0;
+	align-self: end;
+}
+
+.footer>div {
+	display: flex;
+	flex-direction: column;
 }
 
 a {

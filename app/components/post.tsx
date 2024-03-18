@@ -11,7 +11,8 @@ export type Post = {
 	timestamp: string,
 	subreddit: string,
 	votes: number,
-	comments: number,
+	commentCount: number,
+	comments: string;
 };
 
 type PostProps = {
@@ -44,17 +45,21 @@ const Meta = ({ author, subreddit }: MetaProps) => (
 const Post = ({ post }: PostProps) => {
 	return (
 		<div className="post">
-			<a href={post.link}>
-				<h3 className="title">{post.title}</h3>
-			</a>
+			<div className="title">
+				<a href={post.link}>{post.title}</a>
+				{post.link !== post.comments && <span>({new URL(post.link).hostname})</span>}
+			</div>
 			{post.media && <Media media={post.media} />}
 			<div className="footer">
-				<Meta author={post.author} subreddit={post.subreddit} />
-				<Stats
-					votes={post.votes}
-					comments={post.comments}
-					timestamp={post.timestamp}
-				/>
+				<div>
+					<Stats
+						votes={post.votes}
+						comments={post.commentCount}
+						timestamp={post.timestamp}
+					/>
+					<Meta author={post.author} subreddit={post.subreddit} />
+				</div>
+				<a href={post.comments}>Comments</a>
 			</div>
 		</div>
 	);
