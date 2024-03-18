@@ -33,6 +33,10 @@ body {
 	border-bottom: 1px solid #333;
 }
 
+.post:last-child {
+	border-bottom: none;
+}
+
 .title {
 	margin: 5px;
 	margin-left: 10px;
@@ -53,7 +57,7 @@ body {
 	width: 1rem;
 }
 
-img {
+.post>.media>.container>img {
 	margin-top: 10px;
 	margin-bottom: 10px;
 }
@@ -64,7 +68,7 @@ img {
 	font-size: 0.85rem;
 	margin-left: 10px;
 	margin-right: 10px;
-	margin-bottom: 7px;
+	margin-bottom: 5px;
 }
 
 a {
@@ -74,6 +78,7 @@ a {
 .meta {
 	display: inline-block;
 	flex: 1;
+	margin-right: 5px;
 }
 
 .meta span {
@@ -87,4 +92,18 @@ a {
 .stats {
 	display: inline-block;
 	color: #ffffffbb;
+}
+
+.slick-track {
+	display: flex !important;
+}
+
+.slick-slide {
+	align-self: center;
+}
+
+.media>.container {
+	display: flex;
+	justify-content: center;
+	align-content: center;
 }

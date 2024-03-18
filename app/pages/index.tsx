@@ -1,4 +1,12 @@
 import Xray from "x-ray"
+import puppeteer from "puppeteer";
+import cheerio from "cheerio"
+import Slider from "react-slick";
+import fetch from 'node-fetch';
+
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+
 const x = Xray()
 
 type ScrapedPost = {
@@ -12,14 +20,24 @@ type ScrapedPost = {
 	comments: string,
 }
 
+enum ScrapeMediaType {
+	Image,
+	Video,
+	Gallery
+}
+
 enum MediaType {
 	Image,
-	Video
+	Video,
+}
+
+type Media = {
+	type: MediaType,
+	uri: string
 }
 
 type Post = {
-	mediaUri: string | null,
-	mediaType: MediaType | null,
+	media: Media[],
 	title: string,
 	link: string,
 	author: string,
@@ -133,6 +151,32 @@ const Timestamp = ({ timestamp }: { timestamp: string }) => (
 	</div>
 )
 
+const InnerMedia = ({ media }: { media: Media }) => (
+	<div className="container">
+		{media.type === MediaType.Image
+			? <img src={media.uri} />
+			: <video src={media.uri} controls={true} playsInline={true} />}
+	</div>
+)
+
+const Media = ({ media }: { media: Media[] }) => (
+	<div className="media">
+		{media.length > 1
+			? <Slider
+				speed={300}
+				accessibility={false}
+				arrows={false}
+				infinite={false}
+				dots={true}
+			>
+				{media.map((media) =>
+					<InnerMedia media={media} />
+				)}
+			</Slider>
+			: <InnerMedia media={media[0]} />}
+	</div>
+)
+
 export default ({ posts }: { posts: Post[] }) => (
 	<div className="posts">
 		{posts.map((post, idx) => (
@@ -140,13 +184,11 @@ export default ({ posts }: { posts: Post[] }) => (
 				<a href={post.link}>
 					<h3 className="title">{post.title}</h3>
 				</a>
-				{post.mediaType !== null && (
-					post.mediaType === MediaType.Image ? (
-						<img src={post.mediaUri} />
-					) : (
-						<video src={post.mediaUri} />
-					)
-				)}
+				{post.media.length > 0 &&
+					// <a href={post.link}>
+					<Media media={post.media} />
+					// </a>
+				}
 				<div className="footer">
 					<div className="meta">
 						<div>
@@ -174,11 +216,13 @@ export default ({ posts }: { posts: Post[] }) => (
 	</div>
 )
 
-function getMediaType(url: string): MediaType | null {
+function getMediaType(url: string): ScrapeMediaType | null {
 	if (url.startsWith("https://i.redd.it/")) {
-		return MediaType.Image
+		return ScrapeMediaType.Image
 	} else if (url.startsWith("https://v.redd.it/")) {
-		return MediaType.Video
+		return ScrapeMediaType.Video
+	} else if (url.startsWith("https://www.reddit.com/gallery/")) {
+		return ScrapeMediaType.Gallery
 	} else {
 		return null
 	}
@@ -201,17 +245,73 @@ export async function getServerSideProps() {
 
 	return {
 		props: {
-			posts: res.map((post: ScrapedPost) => {
+			posts: await Promise.all(res.map(async (post: ScrapedPost) => {
 				const mediaType = getMediaType(post.mediaUri)
-				const mediaUri = mediaType !== null ? post.mediaUri : null;
+
+				let media = []
+
+				switch (mediaType) {
+					case ScrapeMediaType.Image:
+						media.push({
+							type: MediaType.Image,
+							uri: post.mediaUri
+						})
+						break;
+					case ScrapeMediaType.Video:
+						const res = await fetch(`${post.link}/.json`)
+						const data = await res.json();
+						console.log("data", data[0].data.children[0].data.media);
+
+						media.push({
+							type: MediaType.Video,
+							uri: data[0].data.children[0].data.media.reddit_video.fallback_url
+						})
+						break;
+
+					case ScrapeMediaType.Gallery:
+						const browser = await puppeteer.launch({
+							args: [
+								'--no-sandbox',
+								'--disable-setuid-sandbox',
+								'--disable-infobars',
+								'--window-position=0,0',
+								'--ignore-certifcate-errors',
+								'--ignore-certifcate-errors-spki-list',
+								'--user-agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3312.0 Safari/537.36"'
+							]
+						});
+						const page = await browser.newPage();
+						await page.goto(post.mediaUri);
+						await new Promise((resolve) => setTimeout(resolve, 3000))
+						const htmlContent = await page.content();
+						await browser.close();
+						const $ = cheerio.load(htmlContent);
+
+						const images = $("img")
+							.map((_, e) => $(e).attr("src"))
+							.get()
+							.filter((uri) => uri.includes("preview.redd.it"));
+
+						console.log("images", images)
+
+						// TODO: gallery videos
+						media = images.map((uri) => ({
+							type: MediaType.Image,
+							uri
+						}))
+						console.log("media:", media)
+						break;
+
+					default: break;
+				}
+
 				const subreddit = post.subreddit.substring(2);
 				const postVotes = parseInt(post.votes);
 				const votes = !Number.isNaN(postVotes) ? postVotes : null;
 				const comments = parseInt(post.comments);
 
 				return {
-					mediaUri,
-					mediaType,
+					media,
 					title: post.title,
 					link: post.link,
 					author: post.author,
@@ -220,7 +320,7 @@ export async function getServerSideProps() {
 					votes,
 					comments
 				}
-			})
+			}))
 		}
 	}
 }
