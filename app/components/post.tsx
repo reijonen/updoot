@@ -17,32 +17,40 @@ export type Post = {
 
 type PostProps = {
 	post: Post,
+	showAuthor: boolean,
+	showSubreddit: boolean,
 };
 
 type MetaProps = {
 	author: string,
 	subreddit: string,
+	showAuthor: boolean,
+	showSubreddit: boolean,
 };
 
-const Meta = ({ author, subreddit }: MetaProps) => (
+const Meta = ({ author, subreddit, showAuthor, showSubreddit }: MetaProps) => (
 	<div className="meta">
-		<div>
-			<span>By </span>
-			<a href={`https://old.reddit.com/u/${author}`}>
-				{author}
-			</a>
-		</div>
+		{showAuthor && (
+			<div>
+				<span>By </span>
+				<a href={author ? `https://old.reddit.com/u/${author}` : ""}>
+					{author || "[deleted]"}
+				</a>
+			</div>
+		)}
 		<span> </span>
-		<div>
-			<span>in </span>
-			<a href={`https://old.reddit.com/u/${subreddit}`}>
-				{subreddit}
-			</a>
-		</div>
+		{showSubreddit && (
+			<div>
+				<span>in </span>
+				<a href={`https://old.reddit.com/u/${subreddit}`}>
+					{subreddit}
+				</a>
+			</div>
+		)}
 	</div>
 );
 
-const Post = ({ post }: PostProps) => (
+const Post = ({ post, showAuthor, showSubreddit }: PostProps) => (
 	<div className="post">
 		<div className="title">
 			<a href={post.link}>{post.title}</a>
@@ -56,7 +64,12 @@ const Post = ({ post }: PostProps) => (
 					comments={post.commentCount}
 					timestamp={post.timestamp}
 				/>
-				<Meta author={post.author} subreddit={post.subreddit} />
+				<Meta
+					author={post.author}
+					subreddit={post.subreddit}
+					showAuthor={showAuthor}
+					showSubreddit={showSubreddit}
+				/>
 			</div>
 			<a href={post.comments}>Comments</a>
 		</div>

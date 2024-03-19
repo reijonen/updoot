@@ -2,10 +2,21 @@ import Post from "./post";
 // TODO: wat do
 import type { Post as PostT } from "./post";
 
-const Subreddit = ({ posts }: { posts: PostT[]; }) => (
+type SubredditProps = {
+	posts: PostT[],
+	showAuthor: boolean,
+	showSubreddit: boolean,
+};
+
+const Subreddit = ({ posts, showAuthor, showSubreddit }: SubredditProps) => (
 	<div className="posts">
 		{posts.map((post, idx) => (
-			<Post key={idx} post={post} />
+			<Post
+				key={idx}
+				post={post}
+				showAuthor={showAuthor}
+				showSubreddit={showSubreddit}
+			/>
 		))}
 	</div>
 );

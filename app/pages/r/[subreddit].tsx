@@ -3,7 +3,12 @@ import Scraper from "../../utils/scraper";
 
 import type { Post } from "../../components/post";
 
-export default ({ posts }: { posts: Post[]; }) => <Subreddit posts={posts} />;
+export default ({ posts }: { posts: Post[]; }) =>
+	<Subreddit
+		posts={posts}
+		showAuthor={true}
+		showSubreddit={false}
+	/>;
 
 export async function getServerSideProps(context) {
 	const posts = await Scraper.getSubreddit(context.query.subreddit);
