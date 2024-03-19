@@ -110,8 +110,8 @@ type StatsProps = {
 
 const Stats = ({ votes, comments, timestamp }: StatsProps) => (
 	<div className="stats">
-		{votes && <Votes votes={votes} />}
-		{comments && <Comment commentCount={comments} />}
+		<Votes votes={votes} />
+		<Comment commentCount={comments} />
 		<Timestamp timestamp={timestamp} />
 	</div>
 );

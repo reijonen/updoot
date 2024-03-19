@@ -66,18 +66,18 @@ const scrapeMedia = async (uri: string, link: string) => {
 	}
 };
 
-const parseToNumber = (input: string): number | null => {
+const parseToNumber = (input: string): number => {
 	const numericString = input.replace(/[^\d.k]/g, '');
 	if (numericString === '')
-		return null;
+		return 0;
 
 	if (numericString.endsWith('k')) {
 		const num = parseFloat(numericString);
-		return isNaN(num) ? null : num * 1000;
+		return isNaN(num) ? 0 : num * 1000;
 	}
 
 	const parsed = parseFloat(numericString);
-	return isNaN(parsed) ? null : parsed;
+	return isNaN(parsed) ? 0 : parsed;
 };
 
 const parseIntoPost = async (res: ScrapedPost[], subreddit?: string) => {
@@ -85,7 +85,7 @@ const parseIntoPost = async (res: ScrapedPost[], subreddit?: string) => {
 		media: await scrapeMedia(post.mediaUri, post.comments),
 		title: post.title,
 		link: post.link.startsWith("https://i.redd.it/") || post.link.startsWith("https://v.redd.it/") ? post.comments : post.link,
-		author: post.author,
+		author: post.author || null,
 		timestamp: post.timestamp,
 		subreddit: subreddit || post.subreddit.substring(2),
 		votes: parseToNumber(post.votes),
@@ -127,10 +127,7 @@ const getSubreddit = async (subreddit: string) => {
 		}
 	]);
 
-	const posts = await parseIntoPost(res, subreddit);
-	console.log("posts:", posts);
-
-	return posts;
+	return await parseIntoPost(res, subreddit);
 };
 
 export default {
