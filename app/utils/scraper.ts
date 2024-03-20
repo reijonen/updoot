@@ -6,6 +6,7 @@ import { getPage } from "./browser";
 import { MediaType } from "../components/media";
 
 type ScrapedPost = {
+	id: string;
 	mediaUri: string,
 	title: string,
 	link: string,
@@ -82,6 +83,7 @@ const parseToNumber = (input: string): number => {
 
 const parseIntoPost = async (res: ScrapedPost[], subreddit?: string) => {
 	return await Promise.all(res.map(async (post: ScrapedPost) => ({
+		id: post.id.substring(6),
 		media: await scrapeMedia(post.mediaUri, post.comments),
 		title: post.title,
 		link: post.link.startsWith("https://i.redd.it/") || post.link.startsWith("https://v.redd.it/") ? post.comments : post.link,
@@ -98,6 +100,7 @@ const getFrontpage = async (geoFilter = "GLOBAL") => {
 	// TODO: geofilters
 	const res = await x(`https://old.reddit.com/r/popular/?geo_filter=${geoFilter}`, ".thing", [
 		{
+			id: "@id",
 			mediaUri: ".thumbnail@href",
 			title: ".top-matter a.title",
 			link: ".top-matter a.title@href",
@@ -113,9 +116,13 @@ const getFrontpage = async (geoFilter = "GLOBAL") => {
 	return parseIntoPost(res);
 };
 
-const getSubreddit = async (subreddit: string) => {
-	const res = await x(`https://old.reddit.com/r/${subreddit}`, ".thing", [
+const getSubreddit = async (subreddit: string, after?: string) => {
+
+	const postsAfter = after ? `?count=25&after=${after}` : "";
+
+	const res = await x(`https://old.reddit.com/r/${subreddit}${postsAfter}`, ".thing", [
 		{
+			id: "@id",
 			mediaUri: ".thumbnail@href",
 			title: ".top-matter a.title",
 			link: ".top-matter a.title@href",

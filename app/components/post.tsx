@@ -4,6 +4,7 @@ import Media from "./media";
 import type { Media as MediaT } from "./media";
 
 export type Post = {
+	id: string,
 	media: MediaT[],
 	title: string,
 	link: string,
@@ -51,7 +52,7 @@ const Meta = ({ author, subreddit, showAuthor, showSubreddit }: MetaProps) => (
 );
 
 const Post = ({ post, showAuthor, showSubreddit }: PostProps) => (
-	<div className="post">
+	<div id={post.id} className="post">
 		<div className="title">
 			<a href={post.link}>{post.title}</a>
 			{post.link !== post.comments && <span>({new URL(post.link).hostname})</span>}

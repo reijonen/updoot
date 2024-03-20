@@ -16,6 +16,7 @@
 		"puppeteer": "^22.5.0",
 		"react": "^18",
 		"react-dom": "^18",
+		"react-infinite-scroll-component": "^6.1.0",
 		"react-slick": "^0.30.2",
 		"slick-carousel": "^1.8.1",
 		"x-ray": "^2.3.4"
