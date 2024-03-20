@@ -2,7 +2,7 @@ import Xray from "x-ray";
 import cheerio from "cheerio";
 import fetch from 'node-fetch';
 
-import getBrowser from "./getBrowser";
+import { getPage } from "./browser";
 import { MediaType } from "../components/media";
 
 type ScrapedPost = {
@@ -30,11 +30,11 @@ const scrapeVideo = async (postLink: string) => {
 
 // TODO: gallery videos
 const scrapeGallery = async (uri: string) => {
-	const browser = await getBrowser();
-	const page = await browser.newPage();
+	const page = await getPage();
 	await page.goto(uri);
 	await new Promise((resolve) => setTimeout(resolve, 3000));
 	const htmlContent = await page.content();
+	await page.close();
 	const $ = cheerio.load(htmlContent);
 
 	return $("img")
