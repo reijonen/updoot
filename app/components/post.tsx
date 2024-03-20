@@ -32,7 +32,7 @@ const Meta = ({ author, subreddit, showAuthor, showSubreddit }: MetaProps) => (
 	<div className="meta">
 		{showAuthor && (
 			<div>
-				<span>By </span>
+				<span>by </span>
 				<a href={author ? `https://old.reddit.com/u/${author}` : ""}>
 					{author || "[deleted]"}
 				</a>
