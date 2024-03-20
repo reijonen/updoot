@@ -32,21 +32,25 @@ type MetaProps = {
 const Meta = ({ author, subreddit, showAuthor, showSubreddit }: MetaProps) => (
 	<div className="meta">
 		{showAuthor && (
-			<div>
+			<>
 				<span>by </span>
-				<a href={author ? `https://old.reddit.com/u/${author}` : ""}>
-					{author || "[deleted]"}
-				</a>
-			</div>
+				{author ? (
+					<a className="author" href={`https://old.reddit.com/u/${author}`}>
+						{author}
+					</a>
+				) : (
+					<span className="author deleted">deleted</span>
+				)}
+			</>
 		)}
 		<span> </span>
 		{showSubreddit && (
-			<div>
+			<>
 				<span>in </span>
 				<a href={`https://old.reddit.com/u/${subreddit}`}>
 					{subreddit}
 				</a>
-			</div>
+			</>
 		)}
 	</div>
 );
