@@ -120,6 +120,12 @@ a {
 	align-self: center;
 }
 
+.slick-slide .container {
+	display: flex;
+	justify-content: center;
+	align-content: center;
+}
+
 .media>.container {
 	display: flex;
 	justify-content: center;
