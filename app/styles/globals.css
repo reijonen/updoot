@@ -126,8 +126,22 @@ a {
 	align-content: center;
 }
 
+.media {
+	min-height: 15em;
+	/* display: flex; */
+	justify-content: center;
+	align-content: center;
+}
+
 .media>.container {
 	display: flex;
 	justify-content: center;
 	align-content: center;
+}
+
+
+.media>.container>img,
+video {
+	justify-self: center;
+	align-self: center;
 }

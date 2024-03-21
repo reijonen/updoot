@@ -1,9 +1,11 @@
 import Xray from "x-ray";
-import cheerio from "cheerio";
+import makeDriver from "request-x-ray";
 import fetch from 'node-fetch';
+import Request from "request";
 
-import { getPage } from "./browser";
 import { MediaType } from "../components/media";
+import type { Post } from "../components/post";
+import type { Media } from "../components/media";
 
 type ScrapedPost = {
 	id: string;
@@ -18,7 +20,14 @@ type ScrapedPost = {
 	comments: string;
 };
 
+
 const x = Xray();
+x.driver(makeDriver({
+	headers: {
+		"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3312.0 Safari/537.36",
+		"Cookie": "session_tracker='mlnnrfdrrabdojgbgr.0.1711033859415.Z0FBQUFBQmxfRTREeUNzT1M0YThRZzExbklZMWM5ZHMwMm5pUGRxZGpkZmZjZFI1MHloT0RvYWNvbmd0dkVOWVNrMW9HOHlZYl9ncDFMZkttZ1ZURXpTaHg2SnlMdUZRdE1HbTVtejgxb0QxVWVRNTNVTktWVFJyWXAzd29VX0diaTJxVTMwRWNQRlA';over18=1;"
+	}
+}));
 
 const scrapeVideo = async (postLink: string) => {
 	const res = await fetch(`${postLink}/.json`);
@@ -30,22 +39,32 @@ const scrapeVideo = async (postLink: string) => {
 };
 
 // TODO: gallery videos
-const scrapeGallery = async (uri: string) => {
-	const page = await getPage();
-	await page.goto(uri);
-	await new Promise((resolve) => setTimeout(resolve, 3000));
-	const htmlContent = await page.content();
-	await page.close();
-	const $ = cheerio.load(htmlContent);
+const scrapeGallery = async (uri: string): Promise<Media[]> => {
+	const res = await fetch(`${uri}.json`);
+	const json = await res.json();
 
-	return $("img")
-		.map((_, e) => $(e).attr("src"))
-		.get()
-		.filter((uri) => uri.includes("preview.redd.it"))
-		.map((uri) => ({
-			type: MediaType.Image,
-			uri
-		}));
+	const metadata = json[0].data.children[0].data.media_metadata;
+	const ids = json[0].data.children[0].data.gallery_data.items.map(({ media_id }) => media_id);
+
+	return ids.map((id: string) => {
+		let mediaType = null;
+		switch (metadata[id].e) {
+			case "Image":
+				mediaType = MediaType.Image;
+				break;
+			case "Video":
+				mediaType = MediaType.Video;
+				break;
+			default: console.log("Unrecognized media type:", metadata[id].e);
+		}
+
+		// smaller preview sizes metadata[id].p - optimizations?
+		return {
+			type: mediaType,
+			uri: `/api/reddit-proxy?uri=${encodeURIComponent(metadata[id].s.u.replace(/&amp;/g, '&'))}`
+		};
+	});
+
 };
 
 const scrapeMedia = async (uri: string, link: string) => {
@@ -60,7 +79,7 @@ const scrapeMedia = async (uri: string, link: string) => {
 			uri: await scrapeVideo(link)
 		}];
 	} else if (uri.startsWith("https://www.reddit.com/gallery/")) {
-		return await scrapeGallery(uri);
+		return await scrapeGallery(link);
 	} else {
 		// TODO: error
 		return null;
@@ -86,7 +105,7 @@ const parseIntoPost = async (res: ScrapedPost[], subreddit?: string) => {
 		id: post.id.substring(6),
 		media: await scrapeMedia(post.mediaUri, post.comments),
 		title: post.title,
-		link: post.link.startsWith("https://i.redd.it/") || post.link.startsWith("https://v.redd.it/") ? post.comments : post.link,
+	link: post.link.startsWith("https://i.redd.it/") || post.link.startsWith("https://v.redd.it/") || post.link.startsWith("https://www.reddit.com/gallery") ? post.comments : post.link,
 		author: post.author || null,
 		timestamp: post.timestamp,
 		subreddit: subreddit || post.subreddit.substring(2),
