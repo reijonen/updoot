@@ -100,9 +100,8 @@ const parseToNumber = (input: string): number => {
 	return isNaN(parsed) ? 0 : parsed;
 };
 
-const parseIntoPost = async (res: ScrapedPost[], subreddit?: string) => {
-	return await Promise.all(res.map(async (post: ScrapedPost) => ({
-		id: post.id.substring(6),
+const toPost = async (post: ScrapedPost, subreddit?: string): Promise<Post> => ({
+	id: post.id.substring(9),
 		media: await scrapeMedia(post.mediaUri, post.comments),
 		title: post.title,
 	link: post.link.startsWith("https://i.redd.it/") || post.link.startsWith("https://v.redd.it/") || post.link.startsWith("https://www.reddit.com/gallery") ? post.comments : post.link,
@@ -135,12 +134,14 @@ const getFrontpage = async (geoFilter = "GLOBAL") => {
 	return parseIntoPost(res);
 };
 
-const getSubreddit = async (subreddit: string, after?: string) => {
 
-	const postsAfter = after ? `?count=25&after=${after}` : "";
+// TODO: geofilters?
+const getSubreddit = async (subreddit: string, postId?: string) => {
+	const next = postId ? `?count=25&after=t3_${postId}` : "";
 
-	const res = await x(`https://old.reddit.com/r/${subreddit}${postsAfter}`, ".thing", [
+	const res = await x(`https://old.reddit.com/r/${subreddit}${next}`, ".thing", [
 		{
+			isSponsored: ".promoted-tag",
 			id: "@id",
 			mediaUri: ".thumbnail@href",
 			title: ".top-matter a.title",
@@ -153,10 +154,70 @@ const getSubreddit = async (subreddit: string, after?: string) => {
 		}
 	]);
 
-	return await parseIntoPost(res, subreddit);
+	return await Promise.all(res
+		.filter(({ isSponsored }) => !!!isSponsored)
+		.map(async (post) => await toPost(post, subreddit)));
+};
+
+const recmap = (comments) => {
+	return comments.map(({ data }) => {
+		const { created, author, body, ups, replies } = data;
+		return {
+			created: created || null,
+			author: author || null,
+			body: body || null,
+			votes: ups || null,
+			replies: replies ? replies.data ? recmap(replies.data.children) : null : null
+		};
+	});
+};
+
+type Reply = {
+	created: number,
+	author: string,
+	body: string,
+	ups: number,
+	replies: Reply[] | null;
+};
+
+type PostComments = Post & {
+	comments: Reply[] | null;
+};
+
+const getComments = async (subreddit: string, postId: string, removeRemoved: boolean = true): Promise<PostComments> => {
+	const url = `https://old.reddit.com/r/${subreddit}/comments/${postId}`;
+
+	const res = await x(url, `#thing_t3_${postId}`, [
+		{
+			mediaUri: ".thumbnail@href",
+			title: ".top-matter a.title",
+			author: ".tagline .author",
+			// TODO: time@datetime?
+			timestamp: ".tagline>time",
+			votes: ".score.unvoted",
+			commentCount: ".bylink.comments",
+		}
+	]);
+
+	const scrapedPost = res.pop();
+	scrapedPost.id = `thing_t3_${postId}`;
+	scrapedPost.subreddit = subreddit;
+	scrapedPost.link = url;
+	scrapedPost.comments = url;
+
+	const post = await toPost(scrapedPost, subreddit) as PostComments;
+	// TODO: fix
+	post.link = null;
+
+	const c = await fetch(`${url}.json`);
+	const json = await c.json();
+	const comments = json[1].data.children;
+	post.comments = recmap(comments);
+
+	return post;
 };
 
 export default {
 	getFrontpage,
-	getSubreddit
+	getComments
 };

@@ -76,7 +76,7 @@ const Post = ({ post, showAuthor, showSubreddit }: PostProps) => (
 					showSubreddit={showSubreddit}
 				/>
 			</div>
-			<a href={post.comments}>Comments</a>
+			<a href={`/r/${post.subreddit}/comments/${post.id}`}>Comments</a>
 		</div>
 	</div>
 );

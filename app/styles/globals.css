@@ -145,3 +145,8 @@ video {
 	justify-self: center;
 	align-self: center;
 }
+
+.replies {
+	margin-left: 1em;
+	border-top: 1px solid;
+}
