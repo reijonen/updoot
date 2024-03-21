@@ -11,7 +11,7 @@ export default ({ posts }: { posts: Post[]; }) =>
 	/>;
 
 export async function getServerSideProps() {
-	const posts = await Scraper.getFrontpage();
+	const posts = await Scraper.getSubreddit("popular");
 
 	return {
 		props: { posts }

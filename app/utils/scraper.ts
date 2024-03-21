@@ -111,28 +111,8 @@ const toPost = async (post: ScrapedPost, subreddit?: string): Promise<Post> => (
 		votes: parseToNumber(post.votes),
 		commentCount: parseToNumber(post.commentCount),
 		comments: post.comments,
-	})));
-};
+});
 
-const getFrontpage = async (geoFilter = "GLOBAL") => {
-	// TODO: geofilters
-	const res = await x(`https://old.reddit.com/r/popular/?geo_filter=${geoFilter}`, ".thing", [
-		{
-			id: "@id",
-			mediaUri: ".thumbnail@href",
-			title: ".top-matter a.title",
-			link: ".top-matter a.title@href",
-			author: ".tagline .author",
-			timestamp: ".tagline .live-timestamp",
-			subreddit: ".tagline .subreddit",
-			votes: ".score.unvoted",
-			commentCount: ".bylink.comments",
-			comments: ".bylink.comments@href",
-		}
-	]);
-
-	return parseIntoPost(res);
-};
 
 
 // TODO: geofilters?
@@ -218,6 +198,6 @@ const getComments = async (subreddit: string, postId: string, removeRemoved: boo
 };
 
 export default {
-	getFrontpage,
+	getSubreddit,
 	getComments
 };
