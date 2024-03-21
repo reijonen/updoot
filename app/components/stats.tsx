@@ -1,5 +1,5 @@
 function roundToNearestThousand(num: number): string {
-	if (num < 100) {
+	if (num < 1000) {
 		return num.toString();
 	} else {
 		const roundedNum = Math.round(num / 100) / 10;
