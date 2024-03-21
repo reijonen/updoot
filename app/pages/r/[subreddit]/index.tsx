@@ -1,7 +1,7 @@
-import Subreddit from "../../components/subreddit";
-import Scraper from "../../utils/scraper";
+import Subreddit from "../../../components/subreddit";
+import Scraper from "../../../utils/scraper";
 
-import type { Post } from "../../components/post";
+import type { Post } from "../../../components/post";
 
 export default ({ posts }: { posts: Post[]; }) =>
 	<Subreddit
