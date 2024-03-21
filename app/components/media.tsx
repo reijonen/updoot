@@ -15,8 +15,14 @@ export type Media = {
 const InnerMedia = ({ media }: { media: Media; }) => (
 	<div className="container">
 		{media.type === MediaType.Image
-			? <img src={media.uri} />
-			: <video src={media.uri} controls={true} playsInline={true} />}
+			? <img src={media.uri} loading="lazy" />
+			: <video
+				src={media.uri}
+				controls={true}
+				playsInline={true}
+				preload="none"
+			/>
+		}
 	</div>
 );
 
