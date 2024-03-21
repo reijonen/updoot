@@ -21,7 +21,7 @@ const Subreddit = ({ posts, showAuthor, showSubreddit }: SubredditProps) => {
 		// todo: hacky or not?
 		const subreddit = _posts[_posts.length - 1].subreddit;
 		const lastPostId = _posts[_posts.length - 1].id;
-		const res = await fetch(`/api/next_posts?subreddit=${subreddit}&after=${lastPostId}`);
+		const res = await fetch(`/api/next-posts?subreddit=${subreddit}&after=${lastPostId}`);
 		const nextPosts = await res.json();
 
 		if (nextPosts.length < 1) {
